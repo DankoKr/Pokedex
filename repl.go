@@ -9,7 +9,7 @@ import (
 type cliCommand struct {
 	name        string
 	description string
-	callback    func() 
+	callback    func() error
 }
 
 
@@ -19,6 +19,11 @@ func getCommands() map[string]cliCommand{
         name:        "help",
         description: "Displays a help message",
         callback:    commandHelp,
+    },
+	"map": {
+        name:        "map",
+        description: "Lists locations",
+        callback:    commandMap,
     },
     "exit": {
         name:        "exit",
@@ -37,6 +42,10 @@ func startRepl() {
         fmt.Print("pokedex > ")
 	    scanner.Scan()
 	    inputCommand := scanner.Text()
+
+		if len(inputCommand) == 0 {
+			continue
+		}
 
         command, ok := availableCommands[inputCommand]
 		if !ok {
