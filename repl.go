@@ -4,12 +4,13 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strings"
 )
 
 type cliCommand struct {
 	name        string
 	description string
-	callback    func(*config) error
+	callback    func(*config, ...string) error
 }
 
 
@@ -30,6 +31,11 @@ func getCommands() map[string]cliCommand{
         description: "Lists previous locations",
         callback:    commandMapB,
     },
+	"explore": {
+        name:        "explore",
+        description: "Explore a location",
+        callback:    commandExplore,
+    },
     "exit": {
         name:        "exit",
         description: "Exits the Pokedex",
@@ -40,28 +46,38 @@ func getCommands() map[string]cliCommand{
 
 
 func startRepl(cfg *config) {
-    scanner := bufio.NewScanner(os.Stdin)
-	availableCommands := getCommands()
-
+	reader := bufio.NewScanner(os.Stdin)
 	for {
-        fmt.Print("pokedex > ")
-	    scanner.Scan()
-	    inputCommand := scanner.Text()
+		fmt.Print("Pokedex > ")
+		reader.Scan()
 
-		if len(inputCommand) == 0 {
+		words := cleanInput(reader.Text())
+		if len(words) == 0 {
 			continue
 		}
 
-        command, ok := availableCommands[inputCommand]
-		if !ok {
-			fmt.Println("Command not recognised")
-			continue
+		commandName := words[0]
+		args := []string{}
+		if len(words) > 1 {
+			args = words[1:]
 		}
 
-		err := command.callback(cfg)
-		if err != nil {
-			fmt.Println(err)
+		command, exists := getCommands()[commandName]
+		if exists {
+			err := command.callback(cfg, args...)
+			if err != nil {
+				fmt.Println(err)
+			}
+			continue
+		} else {
+			fmt.Println("Unknown command")
+			continue
 		}
 	}
+}
 
+func cleanInput(text string) []string {
+	output := strings.ToLower(text)
+	words := strings.Fields(output)
+	return words
 }
