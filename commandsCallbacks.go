@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"math/rand"
 	"os"
 )
 
@@ -75,5 +76,29 @@ func commandExplore(cfg *config, args ...string) error {
 	for _, pokemon := range locationArea.PokemonEncounters {
         fmt.Printf("- %s\n", pokemon.Pokemon.Name)
 	}
+    return nil
+}
+
+func commandCatch(cfg *config, args ...string) error {
+    if len(args) != 1 {
+		return errors.New("no pokemon name provided")
+	}
+
+	pokemonName := args[0]
+
+   pokemon, err := cfg.pokeapiClient.GetPokemon(pokemonName)
+	if err != nil {
+		return err
+	}
+
+	treshHold := 50
+    randNum := rand.Intn(pokemon.BaseExperience)
+	if randNum > treshHold {
+		return fmt.Errorf("%s was not caught", pokemonName)
+	}
+
+    fmt.Printf("%s was caught\n", pokemonName)
+    cfg.catchedPokemons[pokemonName] = pokemon
+
     return nil
 }
