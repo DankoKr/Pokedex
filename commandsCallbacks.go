@@ -80,29 +80,29 @@ func commandExplore(cfg *config, args ...string) error {
 }
 
 func commandCatch(cfg *config, args ...string) error {
-    if len(args) != 1 {
-		return errors.New("no pokemon name provided")
+	if len(args) != 1 {
+		return errors.New("you must provide a pokemon name")
 	}
 
-	pokemonName := args[0]
-
-   pokemon, err := cfg.pokeapiClient.GetPokemon(pokemonName)
+	name := args[0]
+	pokemon, err := cfg.pokeapiClient.GetPokemon(name)
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("Throwing a Pokeball at %s\n", pokemonName)
+	res := rand.Intn(pokemon.BaseExperience)
 
-	treshHold := 50
-    randNum := rand.Intn(pokemon.BaseExperience)
-	if randNum > treshHold {
-		return fmt.Errorf("%s was not caught", pokemonName)
+	fmt.Printf("Throwing a Pokeball at %s...\n", pokemon.Name)
+	if res > 40 {
+		fmt.Printf("%s escaped!\n", pokemon.Name)
+		return nil
 	}
 
-    fmt.Printf("%s was caught\n", pokemonName)
-    cfg.catchedPokemons[pokemonName] = pokemon
+	fmt.Printf("%s was caught!\n", pokemon.Name)
+	fmt.Println("You may now inspect it with the inspect command.")
 
-    return nil
+	cfg.catchedPokemons[pokemon.Name] = pokemon
+	return nil
 }
 
 func commandInspect(cfg *config, args ...string) error {
@@ -136,4 +136,13 @@ func commandInspect(cfg *config, args ...string) error {
 	} 
 
     return nil
+}
+
+func commandPokedex(cfg *config, args ...string) error {
+	fmt.Println("Your Pokedex:")
+
+	for _, pokemon := range cfg.catchedPokemons{
+        fmt.Printf("- %s\n", pokemon.Name)
+	}
+	return nil
 }

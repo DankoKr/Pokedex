@@ -2,7 +2,6 @@ package pokeapi
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 )
@@ -10,19 +9,14 @@ import (
 func (c *Client) GetPokemon(pokemonName string) (Pokemon, error) {
 	url := baseURL + "/pokemon/" + pokemonName
 
-	// Check cache
-	dat, ok := c.cache.Get(url)
-	if ok {
-		// Cache exists
-		fmt.Println(".................Cache..................")
+	if val, ok := c.cache.Get(url); ok {
 		pokemonResp := Pokemon{}
-		err := json.Unmarshal(dat, &pokemonResp)
+		err := json.Unmarshal(val, &pokemonResp)
 		if err != nil {
 			return Pokemon{}, err
 		}
-		return Pokemon{}, nil
+		return pokemonResp, nil
 	}
-	fmt.Println(".................No Cache..................")
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -35,7 +29,7 @@ func (c *Client) GetPokemon(pokemonName string) (Pokemon, error) {
 	}
 	defer resp.Body.Close()
 
-	dat, err = io.ReadAll(resp.Body)
+	dat, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return Pokemon{}, err
 	}
@@ -46,7 +40,7 @@ func (c *Client) GetPokemon(pokemonName string) (Pokemon, error) {
 		return Pokemon{}, err
 	}
 
-	// Save to cache
 	c.cache.Add(url, dat)
+
 	return pokemonResp, nil
 }
