@@ -91,6 +91,8 @@ func commandCatch(cfg *config, args ...string) error {
 		return err
 	}
 
+	fmt.Printf("Throwing a Pokeball at %s\n", pokemonName)
+
 	treshHold := 50
     randNum := rand.Intn(pokemon.BaseExperience)
 	if randNum > treshHold {
@@ -99,6 +101,39 @@ func commandCatch(cfg *config, args ...string) error {
 
     fmt.Printf("%s was caught\n", pokemonName)
     cfg.catchedPokemons[pokemonName] = pokemon
+
+    return nil
+}
+
+func commandInspect(cfg *config, args ...string) error {
+    if len(args) != 1 {
+		return errors.New("no pokemon name provided")
+	}
+
+	pokemonName := args[0]
+
+   pokemon, err := cfg.pokeapiClient.GetPokemon(pokemonName)
+	if err != nil {
+		return err
+	}
+
+	pokemon, ok := cfg.catchedPokemons[pokemonName] 
+	if !ok {
+		return errors.New("pokemon was not found in the Pokedex")
+	}
+
+	fmt.Printf("Name: %s\n", pokemonName)
+	fmt.Printf("Height: %v\n", pokemon.Height)
+	fmt.Printf("Weight: %v\n", pokemon.Weight)
+	fmt.Println("Stats: ")
+	for _, stat := range pokemon.Stats{
+		fmt.Printf("- %s: %v\n", stat.Stat.Name, stat.BaseStat)
+	} 
+
+	fmt.Println("Types: ")
+	for _, stat := range pokemon.Types{
+		fmt.Printf("- %s\n", stat.Type.Name)
+	} 
 
     return nil
 }
